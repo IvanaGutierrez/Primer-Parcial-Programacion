@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Catálogo — Librería Ejemplo</title>
+  <link rel="stylesheet" href="css/estilos.css">
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <header>
+    <h1>Librería Ejemplo</h1>
+    <p>Maqueta multipágina — Ejercicio 1 (estructura HTML)</p>
+    <nav aria-label="Navegación principal">
+      <ul>
+        <li><a href="index.html" class="activo" aria-current="page">Catálogo</a></li>
+        <li><a href="libros.html">Libros</a></li>
+        <li><a href="clientes.html">Clientes</a></li>
+        <li><a href="ventas.html">Ventas</a></li>
+        <li><a href="historial.html">Historial</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <section aria-labelledby="titulo-catalogo">
+      <h2 id="titulo-catalogo">Catálogo</h2>
+      <p>Datos de ejemplo — ficticios.</p>
+      <form id="form-buscador" action="#" method="get">
+        <label for="buscador-titulo">Buscar por título</label>
+        <input type="search" id="buscador-titulo" name="buscador-titulo" placeholder="Ej.: Cien años (ejemplo)">
+        <button type="submit">Buscar por título</button>
+      </form>
+      <p id="catalogo-mensaje">Sin resultados para la búsqueda (ejemplo).</p>
+      <div class="tabla-contenedor">
+        <table id="catalogo-listado">
+          <caption>Listado de libros del catálogo (ejemplo ficticio)</caption>
+          <thead>
+            <tr>
+              <th scope="col">Título</th>
+              <th scope="col">ISBN</th>
+              <th scope="col">Editorial</th>
+              <th scope="col">Género</th>
+              <th scope="col">Autores</th>
+              <th scope="col">Precio</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>El jardín de los senderos (ejemplo)</td>
+              <td>978-0000000011</td>
+              <td>Editorial Sur (ejemplo)</td>
+              <td>Novela (ejemplo)</td>
+              <td>Autora Ejemplar (ejemplo)</td>
+              <td>250.00</td>
+            </tr>
+            <tr>
+              <td>Manual de lectura (ejemplo)</td>
+              <td>978-0000000022</td>
+              <td>Editorial Norte (ejemplo)</td>
+              <td>Sin clasificar</td>
+              <td>Autor Uno (ejemplo), Autora Dos (ejemplo)</td>
+              <td>180.50</td>
+            </tr>
+            <tr>
+              <td>Cuentos breves (ejemplo)</td>
+              <td>978-0000000033</td>
+              <td>Editorial Este (ejemplo)</td>
+              <td>Cuento (ejemplo)</td>
+              <td>Autor Tres (ejemplo)</td>
+              <td>120.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p id="catalogo-vacio">No hay registros en el catálogo (ejemplo).</p>
+    </section>
+  </main>
+  <footer>
+    <p>Librería Ejemplo — Maqueta Ejercicio 1. Datos de ejemplo — ficticios.</p>
+  </footer>
+</body>
+</html>

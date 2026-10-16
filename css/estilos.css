@@ -1,0 +1,89 @@
+/* Estilos mínimos — Ejercicio 1 (estructura). La identidad visual completa es del Ejercicio 2. */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, Arial, sans-serif;
+  line-height: 1.5;
+  margin: 0 auto;
+  max-width: 60rem;
+  padding: 0 1rem 2rem;
+  color: #111;
+  background-color: #fff;
+}
+
+header, footer {
+  border-bottom: 1px solid #999;
+  padding: 1rem 0;
+}
+
+footer {
+  border-bottom: 0;
+  border-top: 1px solid #999;
+  margin-top: 2rem;
+}
+
+nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+
+nav a {
+  padding: 0.25rem 0.25rem;
+}
+
+nav a.activo {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+label {
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+input, select, button {
+  font: inherit;
+  margin: 0.25rem 0;
+  max-width: 100%;
+}
+
+/* Foco visible por teclado: no se oculta en ningún caso. */
+:focus-visible {
+  outline: 3px solid #005fcc;
+  outline-offset: 2px;
+}
+
+/* Tablas anchas con contenedor de scroll propio (sin scroll horizontal total). */
+.tabla-contenedor {
+  overflow-x: auto;
+  max-width: 100%;
+  border: 1px solid #999;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 34rem;
+}
+
+caption {
+  text-align: left;
+  padding: 0.5rem;
+}
+
+th, td {
+  border: 1px solid #999;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+thead th {
+  background-color: #eee;
+}

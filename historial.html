@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Historial — Librería Ejemplo</title>
+  <link rel="stylesheet" href="css/estilos.css">
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <header>
+    <h1>Librería Ejemplo</h1>
+    <p>Maqueta multipágina — Ejercicio 1 (estructura HTML)</p>
+    <nav aria-label="Navegación principal">
+      <ul>
+        <li><a href="index.html">Catálogo</a></li>
+        <li><a href="libros.html">Libros</a></li>
+        <li><a href="clientes.html">Clientes</a></li>
+        <li><a href="ventas.html">Ventas</a></li>
+        <li><a href="historial.html" class="activo" aria-current="page">Historial</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <section aria-labelledby="titulo-historial">
+      <h2 id="titulo-historial">Historial de ventas</h2>
+      <p>Datos de ejemplo — ficticios.</p>
+      <div class="tabla-contenedor">
+        <table id="historial-listado">
+          <caption>Ventas registradas (ejemplo ficticio)</caption>
+          <thead>
+            <tr>
+              <th scope="col">Id</th>
+              <th scope="col">Fecha</th>
+              <th scope="col">Cliente</th>
+              <th scope="col">Total</th>
+              <th scope="col">Detalle</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>2026-10-01 (ejemplo)</td>
+              <td>Ana Pérez (ejemplo)</td>
+              <td>500.00</td>
+              <td><a href="#historial-detalle">Ver detalle de la venta 1</a></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>2026-10-05 (ejemplo)</td>
+              <td>Luis Gómez (ejemplo)</td>
+              <td>680.50</td>
+              <td><a href="#historial-detalle">Ver detalle de la venta 2</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p id="historial-vacio">No hay ventas registradas (ejemplo).</p>
+      <section aria-labelledby="titulo-detalle">
+        <h3 id="titulo-detalle">Detalle de la venta</h3>
+        <div id="historial-detalle">
+          <p>Venta 1 — Ana Pérez (ejemplo), fecha 2026-10-01 (ejemplo), total 500.00 (ejemplo).</p>
+          <ul>
+            <li>El jardín de los senderos (ejemplo) — cantidad 2 — subtotal 500.00 (ejemplo).</li>
+          </ul>
+        </div>
+      </section>
+      <p id="msg-ok">Detalle cargado (ejemplo).</p>
+      <p id="msg-error">No se pudo cargar el detalle (ejemplo).</p>
+    </section>
+  </main>
+  <footer>
+    <p>Librería Ejemplo — Maqueta Ejercicio 1. Datos de ejemplo — ficticios.</p>
+  </footer>
+</body>
+</html>

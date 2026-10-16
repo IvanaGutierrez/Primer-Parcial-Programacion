@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clientes — Librería Ejemplo</title>
+  <link rel="stylesheet" href="css/estilos.css">
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <header>
+    <h1>Librería Ejemplo</h1>
+    <p>Maqueta multipágina — Ejercicio 1 (estructura HTML)</p>
+    <nav aria-label="Navegación principal">
+      <ul>
+        <li><a href="index.html">Catálogo</a></li>
+        <li><a href="libros.html">Libros</a></li>
+        <li><a href="clientes.html" class="activo" aria-current="page">Clientes</a></li>
+        <li><a href="ventas.html">Ventas</a></li>
+        <li><a href="historial.html">Historial</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <section aria-labelledby="titulo-clientes">
+      <h2 id="titulo-clientes">Clientes</h2>
+      <p>Datos de ejemplo — ficticios.</p>
+      <form id="form-cliente" action="#" method="post">
+        <fieldset>
+          <legend>Registrar cliente</legend>
+          <p>
+            <label for="cliente-nombre">Nombre completo</label>
+            <input type="text" id="cliente-nombre" name="cliente-nombre" required>
+          </p>
+          <p>
+            <label for="cliente-email">Correo electrónico</label>
+            <input type="email" id="cliente-email" name="cliente-email" required>
+          </p>
+          <p>
+            <button type="submit">Registrar cliente</button>
+          </p>
+        </fieldset>
+      </form>
+      <p id="msg-ok">Cliente registrado (ejemplo).</p>
+      <p id="msg-error">No se pudo registrar el cliente (ejemplo).</p>
+      <h3>Listado de clientes registrados</h3>
+      <div class="tabla-contenedor">
+        <table id="clientes-listado">
+          <caption>Clientes registrados (ejemplo ficticio)</caption>
+          <thead>
+            <tr>
+              <th scope="col">Nombre completo</th>
+              <th scope="col">Email</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Ana Pérez (ejemplo)</td>
+              <td>ana.perez.ejemplo@correo.ficticio</td>
+            </tr>
+            <tr>
+              <td>Luis Gómez (ejemplo)</td>
+              <td>luis.gomez.ejemplo@correo.ficticio</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p id="clientes-vacio">No hay registros de clientes (ejemplo).</p>
+    </section>
+  </main>
+  <footer>
+    <p>Librería Ejemplo — Maqueta Ejercicio 1. Datos de ejemplo — ficticios.</p>
+  </footer>
+</body>
+</html>
