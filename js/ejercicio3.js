@@ -147,4 +147,3 @@ buscador.addEventListener("input", filtrarLibros);
 mostrarLibros(libros);
 
 // Estos datos quedan disponibles para las siguientes etapas del proyecto.
-console.log("Clientes cargados:", clientes.length);
