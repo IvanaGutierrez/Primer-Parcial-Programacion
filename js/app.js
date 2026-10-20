@@ -443,11 +443,451 @@ function actualizarSelector(elemento, items, etiqueta) {
 
 // ---------- Arranque ----------
 
+// ---------- Ventas (Ejercicio 5) ----------
+
+var renglonesVentaActual = [];
+
+function redondear2(numero) {
+    return Math.round(Number(numero) * 100) / 100;
+}
+
+function formatearImporte(numero) {
+    return redondear2(numero).toFixed(2);
+}
+
+function crearFechaLegible() {
+    var fecha = new Date();
+    var dia = String(fecha.getDate()).padStart(2, "0");
+    var mes = String(fecha.getMonth() + 1).padStart(2, "0");
+    var anio = fecha.getFullYear();
+    var horas = String(fecha.getHours()).padStart(2, "0");
+    var minutos = String(fecha.getMinutes()).padStart(2, "0");
+    return dia + "/" + mes + "/" + anio + " " + horas + ":" + minutos;
+}
+
+var CLAVE_VENTAS = "libreria-ventas";
+
+function obtenerVentas() {
+    try {
+        var crudo = sessionStorage.getItem(CLAVE_VENTAS);
+        if (!crudo) {
+            return [];
+        }
+        var lista = JSON.parse(crudo);
+        return Array.isArray(lista) ? lista : [];
+    } catch (error) {
+        return [];
+    }
+}
+
+function guardarVentas(lista) {
+    try {
+        sessionStorage.setItem(CLAVE_VENTAS, JSON.stringify(lista));
+    } catch (error) {
+        mostrarMensajeError("No se pudo guardar la venta en la sesión.");
+    }
+}
+
+function poblarSelectorVentaCliente() {
+    if (typeof actualizarSelector === "function" && typeof clientes !== "undefined") {
+        actualizarSelector(document.getElementById("venta-cliente"), clientes, function (cliente) {
+            return cliente.nombre;
+        });
+    }
+}
+
+function poblarSelectorVentaLibro() {
+    if (typeof actualizarSelector === "function" && typeof libros !== "undefined") {
+        actualizarSelector(document.getElementById("venta-libro"), libros, function (libro) {
+            return libro.titulo;
+        });
+    }
+}
+
+function recalcularResumen() {
+    var resumen = document.getElementById("venta-resumen");
+    if (!resumen) {
+        return;
+    }
+    var total = 0;
+    for (var i = 0; i < renglonesVentaActual.length; i++) {
+        total += redondear2(renglonesVentaActual[i].subtotal);
+    }
+    total = redondear2(total);
+    resumen.textContent = "Total: " + formatearImporte(total) + ".";
+}
+
+function renderizarRenglones() {
+    var tabla = document.getElementById("venta-renglones");
+    if (!tabla) {
+        return;
+    }
+    var cuerpo = tabla.querySelector("tbody");
+    var vacio = document.getElementById("venta-renglones-vacio");
+    if (!cuerpo) {
+        return;
+    }
+    cuerpo.replaceChildren();
+
+    for (var i = 0; i < renglonesVentaActual.length; i++) {
+        var renglon = renglonesVentaActual[i];
+        var fila = document.createElement("tr");
+
+        var celdaTitulo = document.createElement("td");
+        celdaTitulo.textContent = renglon.titulo;
+        fila.appendChild(celdaTitulo);
+
+        var celdaCantidad = document.createElement("td");
+        var inputCantidad = document.createElement("input");
+        inputCantidad.type = "number";
+        inputCantidad.min = "1";
+        inputCantidad.value = renglon.cantidad;
+        inputCantidad.setAttribute("data-libroid", renglon.libroId);
+        inputCantidad.addEventListener("change", function (evento) {
+            var libroId = evento.target.getAttribute("data-libroid");
+            actualizarCantidadRenglon(libroId, evento.target.value);
+        });
+        celdaCantidad.appendChild(inputCantidad);
+        fila.appendChild(celdaCantidad);
+
+        var celdaPrecio = document.createElement("td");
+        celdaPrecio.textContent = formatearImporte(renglon.precioUnitario);
+        fila.appendChild(celdaPrecio);
+
+        var celdaSubtotal = document.createElement("td");
+        celdaSubtotal.textContent = formatearImporte(renglon.subtotal);
+        fila.appendChild(celdaSubtotal);
+
+        var celdaAccion = document.createElement("td");
+        var btnQuitar = document.createElement("button");
+        btnQuitar.type = "button";
+        btnQuitar.textContent = "Quitar";
+        btnQuitar.setAttribute("data-libroid", renglon.libroId);
+        btnQuitar.addEventListener("click", function (evento) {
+            var libroId = evento.target.getAttribute("data-libroid");
+            quitarRenglon(libroId);
+        });
+        celdaAccion.appendChild(btnQuitar);
+        fila.appendChild(celdaAccion);
+
+        cuerpo.appendChild(fila);
+    }
+
+    if (vacio) {
+        if (renglonesVentaActual.length === 0) {
+            vacio.hidden = false;
+        } else {
+            vacio.hidden = true;
+        }
+    }
+
+    recalcularResumen();
+}
+
+function agregarRenglon(evento) {
+    if (evento) {
+        evento.preventDefault();
+    }
+    var selectorLibro = document.getElementById("venta-libro");
+    var inputCantidad = document.getElementById("venta-cantidad");
+    if (!selectorLibro || !inputCantidad) {
+        return;
+    }
+    var libroId = selectorLibro.value;
+    var cantidadTexto = inputCantidad.value;
+
+    if (!libroId) {
+        mostrarMensajeError("Revisá: seleccione un libro.");
+        return;
+    }
+    if (cantidadTexto === "" || cantidadTexto === null || cantidadTexto === undefined) {
+        mostrarMensajeError("Revisá: la cantidad debe ser un entero mayor que cero.");
+        return;
+    }
+    var cantidad = Number(cantidadTexto);
+    if (!Number.isFinite(cantidad) || !Number.isInteger(cantidad) || cantidad <= 0) {
+        mostrarMensajeError("Revisá: la cantidad debe ser un entero mayor que cero.");
+        return;
+    }
+
+    var libro = null;
+    if (typeof buscarPorId === "function" && typeof libros !== "undefined") {
+        libro = buscarPorId(libros, libroId);
+    }
+    if (!libro) {
+        mostrarMensajeError("Revisá: el libro seleccionado no existe.");
+        return;
+    }
+
+    for (var i = 0; i < renglonesVentaActual.length; i++) {
+        if (renglonesVentaActual[i].libroId === libroId) {
+            renglonesVentaActual[i].cantidad = renglonesVentaActual[i].cantidad + cantidad;
+            renglonesVentaActual[i].subtotal = redondear2(renglonesVentaActual[i].cantidad * renglonesVentaActual[i].precioUnitario);
+            limpiarMensajes();
+            mostrarMensajeOk("Libro ya presente: cantidad actualizada a " + renglonesVentaActual[i].cantidad + ".");
+            renderizarRenglones();
+            return;
+        }
+    }
+
+    var precioUnitario = Number(libro.precio);
+    var subtotal = redondear2(cantidad * precioUnitario);
+    renglonesVentaActual.push({
+        libroId: libro.id,
+        titulo: libro.titulo,
+        cantidad: cantidad,
+        precioUnitario: precioUnitario,
+        subtotal: subtotal
+    });
+    limpiarMensajes();
+    renderizarRenglones();
+}
+
+function actualizarCantidadRenglon(libroId, textoCantidad) {
+    if (textoCantidad === "" || textoCantidad === null || textoCantidad === undefined) {
+        mostrarMensajeError("Revisá: la cantidad debe ser un entero mayor que cero.");
+        renderizarRenglones();
+        return;
+    }
+    var cantidad = Number(textoCantidad);
+    if (!Number.isFinite(cantidad) || !Number.isInteger(cantidad) || cantidad <= 0) {
+        mostrarMensajeError("Revisá: la cantidad debe ser un entero mayor que cero.");
+        renderizarRenglones();
+        return;
+    }
+    for (var i = 0; i < renglonesVentaActual.length; i++) {
+        if (renglonesVentaActual[i].libroId === libroId) {
+            renglonesVentaActual[i].cantidad = cantidad;
+            renglonesVentaActual[i].subtotal = redondear2(cantidad * renglonesVentaActual[i].precioUnitario);
+            break;
+        }
+    }
+    limpiarMensajes();
+    renderizarRenglones();
+}
+
+function quitarRenglon(libroId) {
+    var nuevoArray = [];
+    for (var i = 0; i < renglonesVentaActual.length; i++) {
+        if (renglonesVentaActual[i].libroId !== libroId) {
+            nuevoArray.push(renglonesVentaActual[i]);
+        }
+    }
+    renglonesVentaActual = nuevoArray;
+    limpiarMensajes();
+    renderizarRenglones();
+}
+
+function validarVentaActual() {
+    var errores = [];
+    var selectorCliente = document.getElementById("venta-cliente");
+    if (!selectorCliente || !selectorCliente.value) {
+        errores.push("seleccione un cliente");
+    } else if (typeof buscarPorId === "function" && typeof clientes !== "undefined") {
+        var cliente = buscarPorId(clientes, selectorCliente.value);
+        if (!cliente) {
+            errores.push("seleccione un cliente");
+        }
+    }
+    if (renglonesVentaActual.length === 0) {
+        errores.push("agregue al menos un renglón");
+    }
+    for (var i = 0; i < renglonesVentaActual.length; i++) {
+        var r = renglonesVentaActual[i];
+        if (!Number.isFinite(r.cantidad) || !Number.isInteger(r.cantidad) || r.cantidad <= 0) {
+            errores.push("cantidades inválidas en algún renglón");
+            break;
+        }
+    }
+    return { valido: errores.length === 0, errores: errores };
+}
+
+function resetearFormularioVenta() {
+    var formulario = document.getElementById("form-venta");
+    if (formulario) {
+        formulario.reset();
+        var inputCantidad = document.getElementById("venta-cantidad");
+        if (inputCantidad) {
+            inputCantidad.value = "1";
+        }
+    }
+    renglonesVentaActual = [];
+    renderizarRenglones();
+    recalcularResumen();
+}
+
+function confirmarVenta() {
+    var validacion = validarVentaActual();
+    if (!validacion.valido) {
+        mostrarMensajeError("Revisá: " + validacion.errores.join("; ") + ".");
+        return;
+    }
+    var selectorCliente = document.getElementById("venta-cliente");
+    var cliente = null;
+    if (typeof buscarPorId === "function" && typeof clientes !== "undefined") {
+        cliente = buscarPorId(clientes, selectorCliente.value);
+    }
+    var listaVentas = obtenerVentas();
+    var venta = {
+        id: typeof generarId === "function" ? generarId("v", listaVentas) : ("v" + (listaVentas.length + 1)),
+        fecha: crearFechaLegible(),
+        clienteId: cliente ? cliente.id : selectorCliente.value,
+        clienteNombre: cliente ? cliente.nombre : "",
+        renglones: [],
+        total: 0
+    };
+    var totalVenta = 0;
+    for (var i = 0; i < renglonesVentaActual.length; i++) {
+        var r = renglonesVentaActual[i];
+        var subtotal = redondear2(r.cantidad * r.precioUnitario);
+        venta.renglones.push({
+            libroId: r.libroId,
+            titulo: r.titulo,
+            cantidad: r.cantidad,
+            precioUnitario: r.precioUnitario,
+            subtotal: subtotal
+        });
+        totalVenta += subtotal;
+    }
+    venta.total = redondear2(totalVenta);
+    listaVentas.push(venta);
+    guardarVentas(listaVentas);
+    limpiarMensajes();
+    mostrarMensajeOk("Venta registrada: " + venta.id + " — total " + formatearImporte(venta.total) + ".");
+    resetearFormularioVenta();
+}
+
+function inicializarVentas() {
+    if (!document.getElementById("form-venta")) {
+        return;
+    }
+    if (typeof libros === "undefined" || typeof clientes === "undefined") {
+        return;
+    }
+    renglonesVentaActual = [];
+    poblarSelectorVentaCliente();
+    poblarSelectorVentaLibro();
+    limpiarMensajes();
+    var formulario = document.getElementById("form-venta");
+    if (formulario) {
+        formulario.noValidate = true;
+        formulario.addEventListener("submit", agregarRenglon);
+    }
+    var btnConfirmar = document.getElementById("venta-confirmar");
+    if (btnConfirmar) {
+        btnConfirmar.addEventListener("click", confirmarVenta);
+    }
+    var vacio = document.getElementById("venta-renglones-vacio");
+    if (vacio) {
+        vacio.hidden = false;
+    }
+    renderizarRenglones();
+    recalcularResumen();
+}
+
+function renderizarHistorial(ventas) {
+    var tabla = document.getElementById("historial-listado");
+    if (!tabla) {
+        return;
+    }
+    var cuerpo = tabla.querySelector("tbody");
+    var vacio = document.getElementById("historial-vacio");
+    if (!cuerpo) {
+        return;
+    }
+    cuerpo.replaceChildren();
+    if (!Array.isArray(ventas) || ventas.length === 0) {
+        if (vacio) {
+            vacio.hidden = false;
+        }
+        return;
+    }
+    if (vacio) {
+        vacio.hidden = true;
+    }
+    for (var i = 0; i < ventas.length; i++) {
+        var venta = ventas[i];
+        var fila = document.createElement("tr");
+        var celdaId = document.createElement("td");
+        celdaId.textContent = venta.id;
+        fila.appendChild(celdaId);
+        var celdaFecha = document.createElement("td");
+        celdaFecha.textContent = venta.fecha || "";
+        fila.appendChild(celdaFecha);
+        var celdaCliente = document.createElement("td");
+        celdaCliente.textContent = venta.clienteNombre || "";
+        fila.appendChild(celdaCliente);
+        var celdaTotal = document.createElement("td");
+        celdaTotal.textContent = formatearImporte(venta.total || 0);
+        fila.appendChild(celdaTotal);
+        var celdaDetalle = document.createElement("td");
+        var linkDetalle = document.createElement("a");
+        linkDetalle.href = "#historial-detalle";
+        linkDetalle.textContent = "Ver detalle de la venta " + venta.id;
+        linkDetalle.setAttribute("data-venta-id", venta.id);
+        linkDetalle.addEventListener("click", function (evento) {
+            evento.preventDefault();
+            var ventaId = evento.target.getAttribute("data-venta-id");
+            verDetalleVenta(ventaId);
+        });
+        celdaDetalle.appendChild(linkDetalle);
+        fila.appendChild(celdaDetalle);
+        cuerpo.appendChild(fila);
+    }
+}
+
+function verDetalleVenta(id) {
+    var detalle = document.getElementById("historial-detalle");
+    if (!detalle) {
+        return;
+    }
+    var ventas = obtenerVentas();
+    var ventaEncontrada = null;
+    for (var i = 0; i < ventas.length; i++) {
+        if (ventas[i].id === id) {
+            ventaEncontrada = ventas[i];
+            break;
+        }
+    }
+    if (!ventaEncontrada) {
+        detalle.textContent = "";
+        return;
+    }
+    detalle.replaceChildren();
+    var cabecera = document.createElement("p");
+    cabecera.textContent = "Venta " + ventaEncontrada.id + " — " + (ventaEncontrada.clienteNombre || "") + ", fecha " + (ventaEncontrada.fecha || "") + ", total " + formatearImporte(ventaEncontrada.total || 0) + ".";
+    detalle.appendChild(cabecera);
+    var lista = document.createElement("ul");
+    var renglones = Array.isArray(ventaEncontrada.renglones) ? ventaEncontrada.renglones : [];
+    for (var j = 0; j < renglones.length; j++) {
+        var r = renglones[j];
+        var item = document.createElement("li");
+        item.textContent = (r.titulo || r.libroId) + " — cantidad " + r.cantidad + " — precio unitario " + formatearImporte(r.precioUnitario || 0) + " — subtotal " + formatearImporte(r.subtotal || 0) + ".";
+        lista.appendChild(item);
+    }
+    detalle.appendChild(lista);
+}
+
+function inicializarHistorial() {
+    if (!document.getElementById("historial-listado")) {
+        return;
+    }
+    limpiarMensajes();
+    var ventas = obtenerVentas();
+    renderizarHistorial(ventas);
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     if (document.getElementById("form-libro") && typeof libros !== "undefined") {
         inicializarLibros();
     }
     if (document.getElementById("form-cliente") && typeof clientes !== "undefined") {
         inicializarClientes();
+    }
+    if (document.getElementById("form-venta") && typeof libros !== "undefined" && typeof clientes !== "undefined") {
+        inicializarVentas();
+    }
+    if (document.getElementById("historial-listado")) {
+        inicializarHistorial();
     }
 });
