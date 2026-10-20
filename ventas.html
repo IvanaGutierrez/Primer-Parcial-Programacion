@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ventas — Librería Ejemplo</title>
   <link rel="stylesheet" href="css/estilos.css">
+  <script src="js/datos.js" defer></script>
   <script src="js/app.js" defer></script>
 </head>
 <body>
@@ -24,27 +25,20 @@
   <main>
     <section aria-labelledby="titulo-ventas">
       <h2 id="titulo-ventas">Ventas</h2>
-      <p>Datos de ejemplo — ficticios.</p>
       <form id="form-venta" action="#" method="post">
         <fieldset>
           <legend>Componer venta</legend>
           <p>
             <label for="venta-cliente">Cliente</label>
-            <select id="venta-cliente" name="venta-cliente">
-              <option value="ana">Ana Pérez (ejemplo)</option>
-              <option value="luis">Luis Gómez (ejemplo)</option>
-            </select>
+            <select id="venta-cliente" name="venta-cliente"></select>
           </p>
           <p>
             <label for="venta-libro">Libro</label>
-            <select id="venta-libro" name="venta-libro">
-              <option value="jardin">El jardín de los senderos (ejemplo)</option>
-              <option value="manual">Manual de lectura (ejemplo)</option>
-            </select>
+            <select id="venta-libro" name="venta-libro"></select>
           </p>
           <p>
             <label for="venta-cantidad">Cantidad</label>
-            <input type="number" id="venta-cantidad" name="venta-cantidad" min="1" value="1" required>
+            <input type="number" id="venta-cantidad" name="venta-cantidad" min="1" value="1">
           </p>
           <p>
             <button type="submit">Agregar renglón</button>
@@ -54,39 +48,27 @@
       <h3>Renglones de la venta</h3>
       <div class="tabla-contenedor">
         <table id="venta-renglones">
-          <caption>Renglones de la venta actual (ejemplo ficticio)</caption>
+          <caption>Renglones de la venta actual</caption>
           <thead>
             <tr>
               <th scope="col">Libro</th>
               <th scope="col">Cantidad</th>
               <th scope="col">Precio unitario</th>
               <th scope="col">Subtotal</th>
+              <th scope="col">Acción</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>El jardín de los senderos (ejemplo)</td>
-              <td>2</td>
-              <td>250.00</td>
-              <td>500.00</td>
-            </tr>
-            <tr>
-              <td>Manual de lectura (ejemplo)</td>
-              <td>1</td>
-              <td>180.50</td>
-              <td>180.50</td>
-            </tr>
-          </tbody>
+          <tbody></tbody>
         </table>
       </div>
-      <p id="venta-renglones-vacio">No hay renglones en la venta (ejemplo).</p>
+      <p id="venta-renglones-vacio">No hay renglones en la venta.</p>
       <section aria-labelledby="titulo-resumen">
         <h3 id="titulo-resumen">Resumen</h3>
-        <p id="venta-resumen">Total: 680.50 (ejemplo).</p>
-        <p><button type="button">Confirmar venta</button></p>
+        <p id="venta-resumen">Total: 0.00.</p>
+        <p><button type="button" id="venta-confirmar">Confirmar venta</button></p>
       </section>
-      <p id="msg-ok">Venta registrada (ejemplo).</p>
-      <p id="msg-error">No se pudo registrar la venta (ejemplo).</p>
+      <p id="msg-ok" hidden></p>
+      <p id="msg-error" hidden></p>
     </section>
   </main>
   <footer>

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Historial — Librería Ejemplo</title>
   <link rel="stylesheet" href="css/estilos.css">
+  <script src="js/datos.js" defer></script>
   <script src="js/app.js" defer></script>
 </head>
 <body>
@@ -24,10 +25,9 @@
   <main>
     <section aria-labelledby="titulo-historial">
       <h2 id="titulo-historial">Historial de ventas</h2>
-      <p>Datos de ejemplo — ficticios.</p>
       <div class="tabla-contenedor">
         <table id="historial-listado">
-          <caption>Ventas registradas (ejemplo ficticio)</caption>
+          <caption>Ventas registradas</caption>
           <thead>
             <tr>
               <th scope="col">Id</th>
@@ -37,36 +37,16 @@
               <th scope="col">Detalle</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>1</td>
-              <td>2026-10-01 (ejemplo)</td>
-              <td>Ana Pérez (ejemplo)</td>
-              <td>500.00</td>
-              <td><a href="#historial-detalle">Ver detalle de la venta 1</a></td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td>2026-10-05 (ejemplo)</td>
-              <td>Luis Gómez (ejemplo)</td>
-              <td>680.50</td>
-              <td><a href="#historial-detalle">Ver detalle de la venta 2</a></td>
-            </tr>
-          </tbody>
+          <tbody></tbody>
         </table>
       </div>
-      <p id="historial-vacio">No hay ventas registradas (ejemplo).</p>
+      <p id="historial-vacio">No hay ventas registradas.</p>
       <section aria-labelledby="titulo-detalle">
         <h3 id="titulo-detalle">Detalle de la venta</h3>
-        <div id="historial-detalle">
-          <p>Venta 1 — Ana Pérez (ejemplo), fecha 2026-10-01 (ejemplo), total 500.00 (ejemplo).</p>
-          <ul>
-            <li>El jardín de los senderos (ejemplo) — cantidad 2 — subtotal 500.00 (ejemplo).</li>
-          </ul>
-        </div>
+        <div id="historial-detalle"></div>
       </section>
-      <p id="msg-ok">Detalle cargado (ejemplo).</p>
-      <p id="msg-error">No se pudo cargar el detalle (ejemplo).</p>
+      <p id="msg-ok" hidden></p>
+      <p id="msg-error" hidden></p>
     </section>
   </main>
   <footer>
