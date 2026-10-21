@@ -82,7 +82,9 @@ function renderizarListadoLibros() {
     const vacio = document.getElementById("libros-vacio");
     cuerpo.replaceChildren();
 
-    libros.forEach(function (libro) {
+    const listaLibros = leerLibros();
+
+    listaLibros.forEach(function (libro) {
         const editorial = buscarPorId(editoriales, libro.editorialId);
         const genero = libro.generoId ? buscarPorId(generos, libro.generoId) : null;
         const nombresAutores = libro.autorIds.map(function (autorId) {
@@ -110,7 +112,7 @@ function renderizarListadoLibros() {
     });
 
     if (vacio) {
-        if (libros.length === 0) {
+        if (listaLibros.length === 0) {
             vacio.textContent = "No hay registros de libros.";
             vacio.hidden = false;
         } else {
@@ -130,7 +132,9 @@ function renderizarListadoClientes() {
     const vacio = document.getElementById("clientes-vacio");
     cuerpo.replaceChildren();
 
-    clientes.forEach(function (cliente) {
+    const listaClientes = leerClientes();
+
+    listaClientes.forEach(function (cliente) {
         const fila = document.createElement("tr");
 
         const celdaNombre = document.createElement("td");
@@ -145,7 +149,7 @@ function renderizarListadoClientes() {
     });
 
     if (vacio) {
-        if (clientes.length === 0) {
+        if (listaClientes.length === 0) {
             vacio.textContent = "No hay registros de clientes.";
             vacio.hidden = false;
         } else {
@@ -169,8 +173,12 @@ function normalizarEmail(texto) {
 
 // VALIDA LOS DATOS DEL LIBRO Y DEVUELVE { valido, errores } CON TODOS LOS
 // ERRORES ENCONTRADOS (R4-04/R4-05)
-function validarLibro(datos) {
+function validarLibro(datos, listaLibros) {
     const errores = [];
+
+    if (!Array.isArray(listaLibros)) {
+        listaLibros = leerLibros();
+    }
 
     // «Sin clasificar» (value = "") equivale a ausencia de género.
     if (!datos.generoId) {
@@ -185,7 +193,7 @@ function validarLibro(datos) {
         errores.push("el ISBN no puede quedar vacío");
     } else {
         const isbnNormalizado = normalizarIsbn(datos.isbn);
-        const duplicado = libros.some(function (libro) {
+        const duplicado = listaLibros.some(function (libro) {
             return normalizarIsbn(libro.isbn) === isbnNormalizado;
         });
         if (duplicado) {
@@ -222,8 +230,12 @@ function validarLibro(datos) {
 }
 
 // VALIDA LOS DATOS DEL CLIENTE Y DEVUELVE { valido, errores } (R4-06/R4-07)
-function validarCliente(datos) {
+function validarCliente(datos, listaClientes) {
     const errores = [];
+
+    if (!Array.isArray(listaClientes)) {
+        listaClientes = leerClientes();
+    }
 
     if (!String(datos.nombre).trim()) {
         errores.push("el nombre completo no puede quedar vacío");
@@ -236,7 +248,7 @@ function validarCliente(datos) {
         errores.push("el email no tiene un formato válido");
     } else {
         const emailNormalizado = normalizarEmail(email);
-        const duplicado = clientes.some(function (cliente) {
+        const duplicado = listaClientes.some(function (cliente) {
             return normalizarEmail(cliente.email) === emailNormalizado;
         });
         if (duplicado) {
@@ -267,10 +279,10 @@ function generarId(prefijo, lista) {
     return id;
 }
 
-// AGREGA EL LIBRO YA VALIDADO AL ARRAY COMPARTIDO
-function agregarLibro(datos) {
+// AGREGA EL LIBRO YA VALIDADO A LA COPIA INDICADA (nunca a los arrays const)
+function agregarLibro(datos, lista) {
     const libro = {
-        id: generarId("l", libros),
+        id: generarId("l", lista),
         titulo: String(datos.titulo).trim(),
         isbn: String(datos.isbn).trim(),
         editorialId: datos.editorialId,
@@ -279,19 +291,19 @@ function agregarLibro(datos) {
         precio: Number(datos.precio)
     };
 
-    libros.push(libro);
+    lista.push(libro);
     return libro;
 }
 
-// AGREGA EL CLIENTE YA VALIDADO AL ARRAY COMPARTIDO
-function agregarCliente(datos) {
+// AGREGA EL CLIENTE YA VALIDADO A LA COPIA INDICADA (nunca a los arrays const)
+function agregarCliente(datos, lista) {
     const cliente = {
-        id: generarId("c", clientes),
+        id: generarId("c", lista),
         nombre: String(datos.nombre).trim(),
         email: String(datos.email).trim()
     };
 
-    clientes.push(cliente);
+    lista.push(cliente);
     return cliente;
 }
 
@@ -316,16 +328,22 @@ function manejarEnvioLibro(evento) {
         autorIds: autorIds
     };
 
-    const resultado = validarLibro(datos);
+    const listaLibros = leerLibros();
+    const resultado = validarLibro(datos, listaLibros);
 
     if (!resultado.valido) {
         mostrarMensajeError("Revisá: " + resultado.errores.join("; ") + ".");
         return;
     }
 
-    const libro = agregarLibro(datos);
+    const libro = agregarLibro(datos, listaLibros);
+    const guardado = escribirLibros(listaLibros);
     refrescarListados();
-    mostrarMensajeOk("Libro registrado: «" + libro.titulo + "».");
+    if (guardado) {
+        mostrarMensajeOk("Libro registrado: «" + libro.titulo + "».");
+    } else {
+        mostrarMensajeError("Libro «" + libro.titulo + "» visible solo en esta sesión: no se pudo guardar en el almacenamiento del navegador; no sobrevivirá a la recarga.");
+    }
     formulario.reset();
     document.getElementById("libro-titulo").focus();
 }
@@ -341,16 +359,22 @@ function manejarEnvioCliente(evento) {
         email: document.getElementById("cliente-email").value
     };
 
-    const resultado = validarCliente(datos);
+    const listaClientes = leerClientes();
+    const resultado = validarCliente(datos, listaClientes);
 
     if (!resultado.valido) {
         mostrarMensajeError("Revisá: " + resultado.errores.join("; ") + ".");
         return;
     }
 
-    const cliente = agregarCliente(datos);
+    const cliente = agregarCliente(datos, listaClientes);
+    const guardado = escribirClientes(listaClientes);
     refrescarListados();
-    mostrarMensajeOk("Cliente registrado: «" + cliente.nombre + "».");
+    if (guardado) {
+        mostrarMensajeOk("Cliente registrado: «" + cliente.nombre + "».");
+    } else {
+        mostrarMensajeError("Cliente «" + cliente.nombre + "» visible solo en esta sesión: no se pudo guardar en el almacenamiento del navegador; no sobrevivirá a la recarga.");
+    }
     formulario.reset();
     document.getElementById("cliente-nombre").focus();
 }
@@ -441,6 +465,114 @@ function actualizarSelector(elemento, items, etiqueta) {
     elemento.replaceChildren(...opciones);
 }
 
+// ---------- Persistencia local (Ejercicio 6) ----------
+// Únicas claves que la aplicación crea en localStorage. Toda lectura es
+// defensiva (try/catch + Array.isArray): clave ausente/vacía, JSON inválido
+// o almacenamiento no disponible devuelven la semilla en memoria sin escribir.
+
+var CLAVE_LIBROS = "libreria-libros";
+var CLAVE_CLIENTES = "libreria-clientes";
+var CLAVE_VENTAS = "libreria-ventas";
+
+// Copias de sesión: altas cuya escritura falló. Se sirven hasta recargar
+// para que la operación quede visible en la sesión en curso; no sobreviven
+// a la recarga.
+var librosEnSesion = null;
+var clientesEnSesion = null;
+
+// LEE UNA CLAVE COMO ARRAY JSON. Devuelve null si está ausente o vacía, si
+// el valor no es un array o si el almacenamiento no está disponible.
+function leerClaveArray(clave) {
+    try {
+        var crudo = localStorage.getItem(clave);
+        if (!crudo) {
+            return null;
+        }
+        var lista = JSON.parse(crudo);
+        return Array.isArray(lista) ? lista : null;
+    } catch (error) {
+        return null;
+    }
+}
+
+// COPIA PROFUNDA DE LA SEMILLA: los arrays const de js/datos.js no se
+// exponen ni se modifican jamás desde esta capa.
+function copiaSemilla(lista) {
+    return JSON.parse(JSON.stringify(lista));
+}
+
+// CONJUNTO VIGENTE DE LIBROS: lo guardado; sin lectura válida, la semilla.
+function leerLibros() {
+    if (librosEnSesion) {
+        return librosEnSesion;
+    }
+    var guardado = leerClaveArray(CLAVE_LIBROS);
+    if (guardado !== null) {
+        return guardado;
+    }
+    return copiaSemilla(typeof libros !== "undefined" ? libros : []);
+}
+
+// CONJUNTO VIGENTE DE CLIENTES (mismo criterio que leerLibros).
+function leerClientes() {
+    if (clientesEnSesion) {
+        return clientesEnSesion;
+    }
+    var guardado = leerClaveArray(CLAVE_CLIENTES);
+    if (guardado !== null) {
+        return guardado;
+    }
+    return copiaSemilla(typeof clientes !== "undefined" ? clientes : []);
+}
+
+// ESCRIBE EL ARRAY COMPLETO EN SU CLAVE. Devuelve true si se guardó; si
+// setItem lanza, la copia queda visible en la sesión y devuelve false.
+function escribirLibros(lista) {
+    try {
+        localStorage.setItem(CLAVE_LIBROS, JSON.stringify(lista));
+        librosEnSesion = null;
+        return true;
+    } catch (error) {
+        librosEnSesion = lista;
+        return false;
+    }
+}
+
+function escribirClientes(lista) {
+    try {
+        localStorage.setItem(CLAVE_CLIENTES, JSON.stringify(lista));
+        clientesEnSesion = null;
+        return true;
+    } catch (error) {
+        clientesEnSesion = lista;
+        return false;
+    }
+}
+
+// SIEMBRA ÚNICA: copia la semilla SOLO cuando la clave está ausente o vacía;
+// nunca concatena sobre datos existentes, así que l1..l6 / c1..c3 no pueden
+// duplicarse al reabrir. Un valor ya presente —aunque su JSON sea inválido—
+// no se pisa al arrancar: se reemplaza recién en la próxima escritura
+// exitosa. Sin js/datos.js (index.html) no siembra ni lee nada.
+function inicializarPersistencia() {
+    if (typeof libros === "undefined" || typeof clientes === "undefined") {
+        return;
+    }
+    sembrarClave(CLAVE_LIBROS, libros);
+    sembrarClave(CLAVE_CLIENTES, clientes);
+}
+
+function sembrarClave(clave, semilla) {
+    try {
+        if (localStorage.getItem(clave)) {
+            return;
+        }
+        localStorage.setItem(clave, JSON.stringify(semilla));
+    } catch (error) {
+        // Almacenamiento no disponible: la página opera en memoria.
+    }
+}
+
 // ---------- Arranque ----------
 
 // ---------- Ventas (Ejercicio 5) ----------
@@ -465,40 +597,32 @@ function crearFechaLegible() {
     return dia + "/" + mes + "/" + anio + " " + horas + ":" + minutos;
 }
 
-var CLAVE_VENTAS = "libreria-ventas";
-
 function obtenerVentas() {
-    try {
-        var crudo = sessionStorage.getItem(CLAVE_VENTAS);
-        if (!crudo) {
-            return [];
-        }
-        var lista = JSON.parse(crudo);
-        return Array.isArray(lista) ? lista : [];
-    } catch (error) {
-        return [];
-    }
+    var lista = leerClaveArray(CLAVE_VENTAS);
+    return Array.isArray(lista) ? lista : [];
 }
 
 function guardarVentas(lista) {
     try {
-        sessionStorage.setItem(CLAVE_VENTAS, JSON.stringify(lista));
+        localStorage.setItem(CLAVE_VENTAS, JSON.stringify(lista));
+        return true;
     } catch (error) {
-        mostrarMensajeError("No se pudo guardar la venta en la sesión.");
+        mostrarMensajeError("No se pudo guardar la venta en el almacenamiento del navegador.");
+        return false;
     }
 }
 
 function poblarSelectorVentaCliente() {
-    if (typeof actualizarSelector === "function" && typeof clientes !== "undefined") {
-        actualizarSelector(document.getElementById("venta-cliente"), clientes, function (cliente) {
+    if (typeof actualizarSelector === "function") {
+        actualizarSelector(document.getElementById("venta-cliente"), leerClientes(), function (cliente) {
             return cliente.nombre;
         });
     }
 }
 
 function poblarSelectorVentaLibro() {
-    if (typeof actualizarSelector === "function" && typeof libros !== "undefined") {
-        actualizarSelector(document.getElementById("venta-libro"), libros, function (libro) {
+    if (typeof actualizarSelector === "function") {
+        actualizarSelector(document.getElementById("venta-libro"), leerLibros(), function (libro) {
             return libro.titulo;
         });
     }
@@ -611,8 +735,8 @@ function agregarRenglon(evento) {
     }
 
     var libro = null;
-    if (typeof buscarPorId === "function" && typeof libros !== "undefined") {
-        libro = buscarPorId(libros, libroId);
+    if (typeof buscarPorId === "function") {
+        libro = buscarPorId(leerLibros(), libroId);
     }
     if (!libro) {
         mostrarMensajeError("Revisá: el libro seleccionado no existe.");
@@ -683,8 +807,8 @@ function validarVentaActual() {
     var selectorCliente = document.getElementById("venta-cliente");
     if (!selectorCliente || !selectorCliente.value) {
         errores.push("seleccione un cliente");
-    } else if (typeof buscarPorId === "function" && typeof clientes !== "undefined") {
-        var cliente = buscarPorId(clientes, selectorCliente.value);
+    } else if (typeof buscarPorId === "function") {
+        var cliente = buscarPorId(leerClientes(), selectorCliente.value);
         if (!cliente) {
             errores.push("seleccione un cliente");
         }
@@ -724,8 +848,8 @@ function confirmarVenta() {
     }
     var selectorCliente = document.getElementById("venta-cliente");
     var cliente = null;
-    if (typeof buscarPorId === "function" && typeof clientes !== "undefined") {
-        cliente = buscarPorId(clientes, selectorCliente.value);
+    if (typeof buscarPorId === "function") {
+        cliente = buscarPorId(leerClientes(), selectorCliente.value);
     }
     var listaVentas = obtenerVentas();
     var venta = {
@@ -751,9 +875,13 @@ function confirmarVenta() {
     }
     venta.total = redondear2(totalVenta);
     listaVentas.push(venta);
-    guardarVentas(listaVentas);
+    var guardo = guardarVentas(listaVentas);
     limpiarMensajes();
-    mostrarMensajeOk("Venta registrada: " + venta.id + " — total " + formatearImporte(venta.total) + ".");
+    if (guardo) {
+        mostrarMensajeOk("Venta registrada: " + venta.id + " — total " + formatearImporte(venta.total) + ".");
+    } else {
+        mostrarMensajeError("La venta " + venta.id + " quedó solo en esta sesión: no se pudo guardar en el almacenamiento del navegador; no sobrevivirá a la recarga.");
+    }
     resetearFormularioVenta();
 }
 
@@ -878,6 +1006,9 @@ function inicializarHistorial() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
+    if (typeof inicializarPersistencia === "function") {
+        inicializarPersistencia();
+    }
     if (document.getElementById("form-libro") && typeof libros !== "undefined") {
         inicializarLibros();
     }

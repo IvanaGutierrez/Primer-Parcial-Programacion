@@ -6,7 +6,8 @@ Define la venta simulada del Ejercicio 5: composición de renglones con
 validaciones y política de duplicados, cálculos de subtotal/total con dos
 decimales, confirmación bloqueada ante datos inválidos con precio unitario
 congelado como valor histórico y datos descriptivos autosuficientes, puente
-`sessionStorage` hacia un historial inmutable con detalle de renglones, todo
+`localStorage` hacia un historial inmutable con detalle de renglones (el
+Ejercicio 6 reemplazó el puente `sessionStorage` del Ejercicio 5), todo
 en `ventas.html`/`historial.html` con DOM seguro y reutilización de helpers.
 
 ## Requirements
@@ -203,35 +204,6 @@ título del libro en cada renglón y el nombre del cliente junto a su `id`.
 - **AND** la lectura no requiere buscar el libro ni el cliente en los arrays
   actuales
 
-### Requirement: Puente de sesión con sessionStorage reemplazable
-
-El sistema SHALL publicar las ventas confirmadas para `historial.html` mediante
-`sessionStorage` (clave `libreria-ventas`, valor en formato JSON),
-con escritura al confirmar y lectura defensiva (`try/catch` → lista vacía
-ante JSON ausente o inválido), y SHALL concentrar el acceso al almacenamiento
-en una única abstracción de lectura/escritura para que el Ejercicio 6 pueda
-añadir o reemplazar `localStorage` sin reescribir la presentación. El sistema
-NO SHALL usar `localStorage` en este ejercicio.
-
-#### Scenario: Publicación al confirmar
-
-- **WHEN** se confirma una venta válida
-- **THEN** el array completo de ventas (incluida la nueva) queda escrito en
-  `sessionStorage` como JSON
-
-#### Scenario: Lectura defensiva
-
-- **WHEN** `historial.html` lee la clave y esta no existe, está vacía o
-  contiene JSON inválido
-- **THEN** el historial se trata como una lista vacía, sin errores en
-  consola ni en la interfaz
-
-#### Scenario: Sin localStorage
-
-- **WHEN** se inspecciona el código del Ejercicio 5
-- **THEN** no hay llamadas a `localStorage` ni simulaciones de persistencia
-  entre sesiones
-
 ### Requirement: Historial con listado y detalle de renglones
 
 El sistema SHALL mostrar en `historial.html` el listado de las ventas
@@ -321,3 +293,38 @@ apertura por `file://` sin dependencias externas.
 - **THEN** la composición, el cálculo, la confirmación y el historial
   funcionan sin servidor ni conexión a internet
 - **AND** solo se cargan hojas de estilo y scripts locales
+
+### Requirement: Puente de persistencia reemplazable con localStorage
+
+El sistema SHALL publicar las ventas confirmadas para `historial.html`
+mediante `localStorage` (clave `libreria-ventas`, valor en formato JSON), con
+escritura al confirmar y lectura defensiva (`try/catch` → lista vacía ante
+JSON ausente o inválido), y SHALL concentrar el acceso al almacenamiento en
+una única abstracción de lectura/escritura. El sistema NO SHALL usar
+`sessionStorage` para las ventas.
+
+#### Scenario: Publicación al confirmar
+
+- **WHEN** se confirma una venta válida
+- **THEN** el array completo de ventas (incluida la nueva) queda escrito en
+  `localStorage` bajo la clave `libreria-ventas` como JSON
+
+#### Scenario: Lectura defensiva
+
+- **WHEN** `historial.html` lee la clave y esta no existe, está vacía o
+  contiene JSON inválido
+- **THEN** el historial se trata como una lista vacía, sin errores en
+  consola ni en la interfaz
+
+#### Scenario: Persistencia entre pestañas y sesiones
+
+- **WHEN** se confirma una venta, se cierra la pestaña o el navegador y se
+  vuelve a abrir `historial.html`
+- **THEN** la venta confirmada sigue presente en el listado y su detalle
+  sigue consultable
+
+#### Scenario: Sin sessionStorage
+
+- **WHEN** se inspecciona el código del proyecto tras el Ejercicio 6
+- **THEN** no hay llamadas a `sessionStorage` para las ventas
+- **AND** las ventas solo se leen y escriben en `localStorage`
